@@ -16,7 +16,7 @@
 
 void HFPage::init(PageId pageNo)
 {
-	cerr << "init @kasin"<<endl;
+//	cerr << "init @kasin"<<endl;
   // fill in the body
 	//setting data members to reasonable default
 	nextPage = INVALID_PAGE;
@@ -50,7 +50,7 @@ void HFPage::dumpPage()
 // **********************************************************
 PageId HFPage::getPrevPage()
 {
-	cerr << "getPrevPage @kasin" << endl;
+//	cerr << "getPrevPage @kasin" << endl;
     // fill in the body
 //	if (prevPage != INVALID_PAGE)
 		return prevPage;
@@ -62,7 +62,7 @@ PageId HFPage::getPrevPage()
 // **********************************************************
 void HFPage::setPrevPage(PageId pageNo)
 {
-	cerr << "setPrevPage @kasin"<< endl;
+//	cerr << "setPrevPage @kasin"<< endl;
     // fill in the body
 	prevPage = pageNo;
 }
@@ -70,7 +70,7 @@ void HFPage::setPrevPage(PageId pageNo)
 // **********************************************************
 void HFPage::setNextPage(PageId pageNo)
 {
-	cerr << "setNextPage @kasin" << endl;
+//	cerr << "setNextPage @kasin" << endl;
   // fill in the body
 	nextPage = pageNo;
 }
@@ -78,7 +78,7 @@ void HFPage::setNextPage(PageId pageNo)
 // **********************************************************
 PageId HFPage::getNextPage()
 {
-	cerr << "getNextPage @kasin" << endl;
+//	cerr << "getNextPage @kasin" << endl;
     // fill in the body
 //	if (nextPage != INVALID_PAGE)	
 		return nextPage;
@@ -94,8 +94,8 @@ PageId HFPage::getNextPage()
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 {
-	cerr << "insertRecord @kasin"<<recLen <<"~"<<recPtr[0]<<"~"<<endl;
-	printf("point = %c\n", recPtr[0]);
+//	cerr << "insertRecord @kasin"<<recLen <<"~"<<recPtr[0]<<"~"<<endl;
+	//printf("point = %c\n", recPtr[0]);
     // fill in the body
 	// when we judge we have space for the record
 	// char pointer points to the record with recLen 
@@ -119,7 +119,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 			slotCnt++;
 			freeSpace -= sizeof(slot_t);
 		}else{
-			cerr << "@kasin has no Space for slot and data!!";
+	//		cerr << "@kasin has no Space for slot and data!!";
 			return DONE;
 		}
 	}
@@ -145,7 +145,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID& rid)
 {
-	cerr << "deleteRecord @kasin"<<endl;
+//	cerr << "deleteRecord @kasin"<<endl;
     // fill in the body
 	if(rid.pageNo != curPage) return FAIL;
 	short slotId = rid.slotNo;
@@ -159,13 +159,26 @@ Status HFPage::deleteRecord(const RID& rid)
 	//     data+usedPtr|
 	//                 |
 	//			data+usedPtr+length
-	
-	memmove(data+usedPtr+curLength, data+usedPtr, curLength);
+//	cout << curLength <<", ";
+	int all = 0;
 	for(int s = 0; s < slotCnt; ++s)
 	{
+		if(slot[s].length == EMPTY_SLOT) continue;
+		if(slot[s].offset < curOffset)
+		{
+			slot[s].offset+=curLength;
+			all += slot[s].length;
+		}
+	}
+//	cout << all<<endl;
+	memmove(data+usedPtr+curLength, data+usedPtr, all);
+/*	for(int s = 0; s < slotCnt; ++s)
+	{
+		if(slot[s].length == EMPTY_SLOT) continue;
 		if(slot[s].offset < curOffset)
 			slot[s].offset += curLength;
 	}
+*/
 	usedPtr += curLength;
 	freeSpace += curLength;
 	slot[slotId].length = EMPTY_SLOT;
@@ -183,7 +196,7 @@ Status HFPage::deleteRecord(const RID& rid)
 // returns RID of first record on page
 Status HFPage::firstRecord(RID& firstRid)
 {
-	cerr << "firstRecord @kasin"<<endl;
+//	cerr << "firstRecord @kasin"<<endl;
     // fill in the body
 
 	short slotId = -1;
@@ -204,7 +217,7 @@ Status HFPage::firstRecord(RID& firstRid)
 */
 	if (slotId == -1) 
 	{
-		cerr << "there is no first Record! by kasin"<<endl;
+//		cerr << "there is no first Record! by kasin"<<endl;
 	//	while(true);
 		return DONE;
 	}
@@ -218,7 +231,7 @@ Status HFPage::firstRecord(RID& firstRid)
 // returns DONE if no more records exist on the page; otherwise OK
 Status HFPage::nextRecord (RID curRid, RID& nextRid)
 {
-	cerr << "nextRecord @kasin"<<endl;
+//	cerr << "nextRecord @kasin"<<endl;
     // fill in the body
 	PageId nextPageNo = curRid.pageNo;
 	if (nextPageNo != curPage) return DONE;
@@ -245,7 +258,7 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
 // returns length and copies out record with RID rid
 Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 {
-	cerr << "getRecord @kasin"<<endl;
+//	cerr << "getRecord @kasin"<<endl;
     // fill in the body
 	if(rid.pageNo != curPage) return FAIL;
 	short slotId = rid.slotNo;
@@ -262,7 +275,7 @@ Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 // in recPtr.
 Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 {
-	cerr << "returnRecord @kasin"<<endl;
+//	cerr << "returnRecord @kasin"<<endl;
     // fill in the body
 	if(rid.pageNo != curPage) return FAIL;
 	short slotId = rid.slotNo;
@@ -271,7 +284,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 	if(slot[slotId].length == EMPTY_SLOT) return FAIL;
 	
 	recLen = slot[slotId].length;
-	cerr << "len = "<< recLen <<" slot.offset = "<<slot[slotId].offset<<endl;
+//	cerr << "len = "<< recLen <<" slot.offset = "<<slot[slotId].offset<<endl;
 	// you set the caller's recPtr to point directly to the record on the page.
 	recPtr = &data[slot[slotId].offset];
     return OK;
@@ -281,7 +294,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 // Returns the amount of available space on the heap file page
 int HFPage::available_space(void)
 {
-	cerr << "available_space @kasin"<<endl;
+//	cerr << "available_space @kasin"<<endl;
     // fill in the body
 	//since freeSpace does not count slot[0]
 	short slotId = -1;
@@ -297,12 +310,12 @@ int HFPage::available_space(void)
 	//since slot[0] cannot contain data, dont have to freeSpace + sizeof(slot_t) even if slot[0].length == EMPTY_SLOT  
 	if(slotId != -1) 
 	{
-		cerr << "has pre-allocated empty space @kasin "<< freeSpace<<endl;
+//		cerr << "has pre-allocated empty space @kasin "<< freeSpace<<endl;
 		return freeSpace; 
 	}	
 	else //have to new a slot
 	{	
-		cerr << "have to new a slot @kasin  "<<freeSpace-sizeof(slot_t)<<endl;
+//		cerr << "have to new a slot @kasin  "<<freeSpace-sizeof(slot_t)<<endl;
 		return freeSpace - sizeof(slot_t);
 	}    
 	return 0;
@@ -313,7 +326,7 @@ int HFPage::available_space(void)
 // It scans the slot directory looking for a non-empty slot.
 bool HFPage::empty(void)
 {
-	cerr << "empty @kasin"<<endl;
+//	cerr << "empty @kasin"<<endl;
     // fill in the body
 	for(short s = 0; s < slotCnt; ++s)
 	{
