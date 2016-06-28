@@ -22,9 +22,11 @@ void HFPage::init(PageId pageNo)
 	nextPage = INVALID_PAGE;
 	prevPage = INVALID_PAGE;
 	slotCnt = 0;
+	slot[0].length = EMPTY_SLOT;
 	curPage = pageNo; 
 	usedPtr = MAX_SPACE-DPFIXED; //usedPtr is the offset of first used byte in data[]
-	freeSpace = MAX_SPACE - DPFIXED + sizeof(slot_t); // number of bytes free in data[] 
+	freeSpace = MAX_SPACE - DPFIXED + sizeof(slot_t); // number of bytes free in data[]
+	memset(data, '\0', sizeof(data)); 
 	
 }
 
@@ -92,7 +94,8 @@ PageId HFPage::getNextPage()
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 {
-	cerr << "insertRecord @kasin"<<endl;
+	cerr << "insertRecord @kasin"<<recLen <<"~"<<recPtr[0]<<"~"<<endl;
+	printf("point = %c\n", recPtr[0]);
     // fill in the body
 	// when we judge we have space for the record
 	// char pointer points to the record with recLen 
@@ -124,11 +127,11 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 	
 	//slot
 	//already coped with freeSpace update
-	slot[slotId].offset = usedPtr - recLen;
-	slot[slotId].length = recLen;
 	usedPtr -= recLen;
+	slot[slotId].offset = usedPtr;
+	slot[slotId].length = recLen;
 	//data
-	memcpy(data+slot[slotId].offset, recPtr, slot[slotId].length);
+	memcpy(data+slot[slotId].offset, recPtr, recLen);
 	freeSpace -= recLen;
 	//rid
 	rid.pageNo = curPage;
@@ -166,6 +169,7 @@ Status HFPage::deleteRecord(const RID& rid)
 	usedPtr += curLength;
 	freeSpace += curLength;
 	slot[slotId].length = EMPTY_SLOT;
+	slot[slotId].offset = -1;
 	while((slotId == slotCnt-1)&&(slot[slotId].length == EMPTY_SLOT))
 	{
 		slotCnt--;
@@ -262,10 +266,14 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
     // fill in the body
 	if(rid.pageNo != curPage) return FAIL;
 	short slotId = rid.slotNo;
+	if(slotId < 0) return FAIL;
 	if(slotId >= slotCnt) return FAIL;
+	if(slot[slotId].length == EMPTY_SLOT) return FAIL;
+	
 	recLen = slot[slotId].length;
+	cerr << "len = "<< recLen <<" slot.offset = "<<slot[slotId].offset<<endl;
 	// you set the caller's recPtr to point directly to the record on the page.
-	recPtr = data + slot[slotId].offset;
+	recPtr = &data[slot[slotId].offset];
     return OK;
 }
 
